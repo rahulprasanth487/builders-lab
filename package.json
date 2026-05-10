@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "gasp": "^0.0.2",
     "gsap": "^3.15.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
