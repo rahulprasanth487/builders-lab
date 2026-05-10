@@ -1,141 +1,127 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-const hasWebGL = () => {
-  try {
-    const c = document.createElement('canvas');
-    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
-  } catch (e) { return false; }
-};
+// Data defining the unique look for each step
+const servicesData = [
+  { 
+    title: 'Discovery & Design', 
+    desc: 'We map out your vision with high-fidelity wireframes and stunning UI/UX concepts tailored for conversion.', 
+    color: '#FFD700', 
+    type: 'torusKnot' 
+  },
+  { 
+    title: 'Technical Build', 
+    desc: 'Our engineers transform designs into high-performance, scalable codebases using the latest frameworks.', 
+    color: '#00A3FF', 
+    type: 'cube' 
+  },
+  { 
+    title: 'E-Commerce Launch', 
+    desc: 'Secure, optimized shopping experiences integrated with seamless payment gateways and inventory.', 
+    color: '#00FF88', 
+    type: 'diamond' 
+  },
+  { 
+    title: 'SEO & Visibility', 
+    desc: 'Strategy-led optimization to ensure your brand dominates search rankings and reaches the right audience.', 
+    color: '#FF6B9D', 
+    type: 'rings' 
+  },
+  { 
+    title: 'Maintenance', 
+    desc: '24/7 performance monitoring and security updates to keep your digital assets running perfectly.', 
+    color: '#00DDDD', 
+    type: 'gears' 
+  }
+];
 
-export default function ServicesTimeline() {
-  const [activeService, setActiveService] = useState(0);
+const TimelineItem = ({ data, index }) => {
   const canvasRef = useRef(null);
-  const groupsRef = useRef([]);
-
-  const servicesData = [
-    { title: 'Discovery & Design', desc: 'We map out your vision with high-fidelity wireframes and stunning UI/UX concepts.', icon: '🎨', color: '#FFD700' },
-    { title: 'Technical Build', desc: 'Our engineers transform designs into high-performance, scalable codebases.', icon: '⚡', color: '#00A3FF' },
-    { title: 'E-Commerce Launch', desc: 'We deploy secure shopping experiences with conversion-optimized checkouts.', icon: '🛒', color: '#00FF88' },
-    { title: 'SEO & Visibility', desc: 'Strategy-led optimization to ensure your brand dominates search rankings.', icon: '📈', color: '#FF6B9D' },
-    { title: 'Scaling & Support', desc: 'Continuous performance monitoring and updates to keep you ahead of the curve.', icon: '🔧', color: '#00DDDD' }
-  ];
 
   useEffect(() => {
-    if (!hasWebGL() || !canvasRef.current) return;
-
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-    camera.position.z = 6;
+    const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+    camera.position.z = 5;
 
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const pLight = new THREE.PointLight(0xffffff, 1.2);
-    pLight.position.set(5, 5, 5);
-    scene.add(pLight);
+    // Light
+    const light = new THREE.PointLight(data.color, 2, 50);
+    light.position.set(5, 5, 5);
+    scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
 
-    // Create unique groups for each timeline step
-    const groups = servicesData.map(() => new THREE.Group());
-    groupsRef.current = groups;
+    // Create unique geometry based on type
+    let geometry;
+    if (data.type === 'torusKnot') geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+    else if (data.type === 'cube') geometry = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+    else if (data.type === 'diamond') geometry = new THREE.OctahedronGeometry(1.6, 0);
+    else if (data.type === 'rings') geometry = new THREE.TorusGeometry(1.2, 0.1, 16, 100);
+    else geometry = new THREE.TorusGeometry(1, 0.3, 16, 8); // Gear-like
 
-    // 0. Torus Knot
-    groups[0].add(new THREE.Mesh(new THREE.TorusKnotGeometry(1, 0.3, 100, 16), new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.7 })));
-    // 1. Double Box
-    groups[1].add(new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0x00A3FF, wireframe: true })));
-    groups[1].add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), new THREE.MeshStandardMaterial({ color: 0x00A3FF })));
-    // 2. Diamond
-    groups[2].add(new THREE.Mesh(new THREE.OctahedronGeometry(1.5, 0), new THREE.MeshStandardMaterial({ color: 0x00FF88, metalness: 0.8 })));
-    // 3. Rings
-    for(let i=1; i<=3; i++) groups[3].add(new THREE.Mesh(new THREE.TorusGeometry(i*0.5, 0.05, 16, 100), new THREE.MeshStandardMaterial({ color: 0xFF6B9D })));
-    // 4. Gears
-    const gear = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.25, 8, 8), new THREE.MeshStandardMaterial({ color: 0x00DDDD }));
-    groups[4].add(gear);
+    const material = new THREE.MeshStandardMaterial({ 
+      color: data.color, 
+      metalness: 0.7, 
+      roughness: 0.2,
+      wireframe: data.type === 'cube' // Style variation
+    });
 
-    groups.forEach(g => { g.scale.set(0, 0, 0); scene.add(g); });
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
 
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      groups.forEach((g, i) => {
-        const targetScale = i === activeService ? 1 : 0;
-        g.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-        g.rotation.y += 0.01;
-        g.rotation.x += 0.005;
-      });
+      mesh.rotation.y += 0.01;
+      mesh.rotation.x += 0.005;
       renderer.render(scene, camera);
     };
     animate();
 
-    const handleResize = () => {
-      camera.aspect = canvas.clientWidth / canvas.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-    };
-
-    window.addEventListener('resize', handleResize);
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
-  }, [activeService]);
+  }, [data]);
 
+  return (
+    <div className={`timeline-row ${index % 2 === 0 ? 'left' : 'right'}`}>
+      <div className="timeline-content">
+        <div className="content-box">
+          <span className="step-num" style={{ color: data.color }}>Step 0{index + 1}</span>
+          <h3 style={{ color: data.color }}>{data.title}</h3>
+          <p>{data.desc}</p>
+        </div>
+      </div>
+
+      <div className="timeline-middle">
+        <div className="timeline-dot" style={{ borderColor: data.color }}></div>
+      </div>
+
+      <div className="timeline-visual">
+        <div className="canvas-container" style={{ '--glow-color': data.color }}>
+          <canvas ref={canvasRef} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function ServicesTimeline() {
   return (
     <section id="services">
       <div className="section-inner">
-        {/* heading - features */}
-        <div className="section-header">
-          <h2>Our Services</h2>
-          <p>From concept to launch, we deliver end-to-end solutions that drive results.</p>
+        <div className="timeline-header">
+          <span className="section-tag">ROADMAP</span>
+          <h2 className="section-title">Our <span>Timeline</span></h2>
         </div>
 
-        <div className="timeline-wrapper">
-          {/* Left Side: The Timeline Map */}
-          <div className="timeline-nav">
-            <div className="timeline-progress-line">
-              <div 
-                className="timeline-progress-fill" 
-                style={{ height: `${(activeService / (servicesData.length - 1)) * 100}%` }}
-              ></div>
-            </div>
-            
-            {servicesData.map((s, i) => (
-              <div 
-                key={i} 
-                className={`timeline-node ${activeService === i ? 'active' : ''} ${i < activeService ? 'completed' : ''}`}
-                onClick={() => setActiveService(i)}
-              >
-                <div className="node-circle">
-                  <span className="node-icon">{s.icon}</span>
-                </div>
-                <div className="node-label">
-                  <h4>{s.title}</h4>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Right Side: The Content Display */}
-          <div className="timeline-content-card">
-            <div className="timeline-visual">
-              <canvas ref={canvasRef} className="timeline-canvas" />
-            </div>
-            <div className="timeline-text">
-              <h3 style={{ color: servicesData[activeService].color }}>
-                {servicesData[activeService].title}
-              </h3>
-              <p>{servicesData[activeService].desc}</p>
-              <ul className="service-checklist">
-                <li>✦ Premium Quality Assurance</li>
-                <li>✦ Strategic Execution</li>
-                <li>✦ Real-time Analytics</li>
-              </ul>
-            </div>
-          </div>
+        <div className="timeline-map">
+          <div className="timeline-vertical-line"></div>
+          {servicesData.map((item, i) => (
+            <TimelineItem key={i} data={item} index={i} />
+          ))}
         </div>
       </div>
     </section>

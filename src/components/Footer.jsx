@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="footer-cta">
           <h2>LET'S BUILD SOMETHING <span>AMAZING</span> TOGETHER!</h2>
           <p>Your vision deserves world-class execution. Let's make it happen.</p>
-          <a href="mailto:hello@builderslab.in" className="btn-primary">hello@builderslab.in</a>
+          <a href="mailto:admin.builderslab@gmail.com" className="btn-primary">admin.builderslab@gmail.com</a>
         </div>
         <div className="footer-top">
           <div className="footer-brand">
@@ -26,8 +26,8 @@ export default function Footer() {
           <div className="footer-col">
             <h4>Contact</h4>
             <ul>
-              <li><a href="https://www.builderslab.in" target="_blank" rel="noopener noreferrer">🌐 www.builderslab.in</a></li>
-              <li><a href="mailto:hello@builderslab.in">✉️ hello@builderslab.in</a></li>
+              <li><a href="https://bl-builders-lab.vercel.app/" target="_blank" rel="noopener noreferrer">bl-builders-lab.vercel.app</a></li>
+              <li><a href="mailto:admin.builderslab@gmail.com">admin.builderslab@gmail.com</a></li>
               <li><a href="tel:+911234567890">📞 +91 12345 67890</a></li>
               <li><span>📍 Based in India</span></li>
             </ul>
